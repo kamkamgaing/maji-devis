@@ -1,0 +1,12 @@
+{
+  "name": "maji-devis",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Maji Devis - Manufacture the Future",
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "dev": "echo 'Lancez backend et frontend separement'"
+  }
+}

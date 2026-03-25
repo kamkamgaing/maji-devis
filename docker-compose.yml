@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: maji_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-maji}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-maji_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-maji_devis}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maji -d maji_devis"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: maji_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      POSTGRES_USER: ${POSTGRES_USER:-maji}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-maji_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-maji_devis}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      PORT: 3001
+      RS_API_KEY: ${RS_API_KEY:-}
+      FARNELL_API_KEY: ${FARNELL_API_KEY:-}
+      MOUSER_API_KEY: ${MOUSER_API_KEY:-}
+      SYNC_INTERVAL_HOURS: ${SYNC_INTERVAL_HOURS:-6}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: maji_frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
