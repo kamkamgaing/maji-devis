@@ -19,12 +19,15 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+let dbReady = false;
+
 app.get("/api/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");
+    dbReady = true;
     res.json({ status: "ok", db: "connected" });
   } catch (err) {
-    res.status(500).json({ status: "error", db: "disconnected", error: err.message });
+    res.status(200).json({ status: "starting", db: "connecting", error: err.message });
   }
 });
 
@@ -49,16 +52,21 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: "Erreur serveur interne" });
 });
 
-async function boot() {
-  await initDatabase();
-  app.listen(PORT, () => {
-    console.log(`Maji Devis API demarre sur le port ${PORT}`);
-    const intervalH = parseFloat(process.env.SYNC_INTERVAL_HOURS) || 6;
-    scheduler.start(intervalH * 3600000);
-  });
-}
+app.listen(PORT, async () => {
+  console.log(`Maji Devis API demarre sur le port ${PORT}`);
+  console.log(`DATABASE_URL configuree: ${!!process.env.DATABASE_URL}`);
 
-boot().catch((err) => {
-  console.error("Erreur au demarrage:", err);
-  process.exit(1);
+  for (let attempt = 1; attempt <= 10; attempt++) {
+    try {
+      await initDatabase();
+      console.log("[Boot] Base de donnees prete");
+      const intervalH = parseFloat(process.env.SYNC_INTERVAL_HOURS) || 6;
+      scheduler.start(intervalH * 3600000);
+      return;
+    } catch (err) {
+      console.log(`[Boot] Tentative ${attempt}/10 - DB pas prete: ${err.message}`);
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+  }
+  console.error("[Boot] Impossible de se connecter a la DB apres 10 tentatives");
 });
