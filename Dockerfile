@@ -14,6 +14,6 @@ RUN cd backend && npm ci --omit=dev
 COPY backend/ ./backend/
 COPY db/ ./db/
 
-EXPOSE 3001
+EXPOSE ${PORT:-8080}
 
 CMD ["node", "backend/src/server.js"]
