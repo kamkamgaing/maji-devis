@@ -16,6 +16,7 @@ export const colors = {
   warningSoft: "rgba(245,158,11,0.12)",
   danger: "#EF4444",
   dangerSoft: "rgba(239,68,68,0.12)",
+  focusRing: "0 0 0 2px rgba(59,130,246,0.5)",
 };
 
 export const s = {

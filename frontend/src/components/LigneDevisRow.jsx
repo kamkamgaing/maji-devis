@@ -3,23 +3,30 @@ import { s, colors } from "../styles/theme";
 import { iaApi } from "../services/api";
 import ConfidenceBar from "./ConfidenceBar";
 import PrixCompare from "./PrixCompare";
+import Spinner from "./Spinner";
 
 export default function LigneDevisRow({ ligne, onUpdate, onSupprimer }) {
   const [anomalie, setAnomalie] = useState({ status: "ok", confiance: 0.8 });
+  const [loadingIA, setLoadingIA] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
+    setLoadingIA(true);
     iaApi.checkAnomalie(ligne.catalogue_id, ligne.prix_retenu).then((res) => {
       if (!cancelled) setAnomalie(res);
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => {
+      if (!cancelled) setLoadingIA(false);
+    });
     return () => { cancelled = true; };
   }, [ligne.catalogue_id, ligne.prix_retenu]);
+
+  const fmt = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(v);
 
   return (
     <tr>
       <td style={s.td}>
         <div style={{ fontWeight: 600 }}>{ligne.nom}</div>
-        <div style={{ fontSize: 11, color: colors.textSecondary }}>{ligne.ref}</div>
+        <div style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "monospace" }}>{ligne.ref}</div>
       </td>
       <td style={s.td}>
         <input type="number" min={1} value={ligne.quantite}
@@ -35,20 +42,27 @@ export default function LigneDevisRow({ ligne, onUpdate, onSupprimer }) {
           style={{ ...s.input, width: 90, textAlign: "right" }} />
       </td>
       <td style={s.td}>
-        <ConfidenceBar value={anomalie.confiance} />
-        {anomalie.status !== "ok" && (
-          <div style={{ fontSize: 11, color: anomalie.status === "critique" ? colors.danger : colors.warning, marginTop: 4 }}>
-            {anomalie.message}
-          </div>
+        {loadingIA ? (
+          <Spinner size={14} label="" />
+        ) : (
+          <>
+            <ConfidenceBar value={anomalie.confiance} />
+            {anomalie.status !== "ok" && (
+              <div style={{ fontSize: 11, color: anomalie.status === "critique" ? colors.danger : colors.warning, marginTop: 4, maxWidth: 180 }}>
+                {anomalie.message}
+              </div>
+            )}
+          </>
         )}
       </td>
       <td style={{ ...s.td, fontWeight: 600 }}>
-        {(ligne.quantite * ligne.prix_retenu).toFixed(2)} EUR
+        {fmt(ligne.quantite * ligne.prix_retenu)}
       </td>
       <td style={s.td}>
         <button style={{ ...s.btn("ghost"), padding: "4px 8px", color: colors.danger, border: "none" }}
+          title="Supprimer cette ligne"
           onClick={() => onSupprimer(ligne._localId)}>
-          Suppr.
+          🗑
         </button>
       </td>
     </tr>
