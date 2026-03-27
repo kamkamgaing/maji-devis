@@ -34,7 +34,11 @@ export default function LigneDevisRow({ ligne, onUpdate, onSupprimer }) {
           style={{ ...s.input, width: 70, textAlign: "center" }} />
       </td>
       <td style={s.td}>
-        <PrixCompare prixList={ligne.prix} />
+        <PrixCompare
+          prixList={ligne.prix}
+          selectedPrix={ligne.prix_retenu}
+          onSelect={(prix) => onUpdate({ ...ligne, prix_retenu: prix })}
+        />
       </td>
       <td style={s.td}>
         <input type="number" step={0.01} value={ligne.prix_retenu}

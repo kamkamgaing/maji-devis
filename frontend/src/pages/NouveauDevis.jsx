@@ -45,8 +45,12 @@ export default function NouveauDevis({ setPage }) {
   }, [poidsEstime, zone]);
 
   const ajouterComposant = (composant) => {
-    if (lignes.find((l) => l.catalogue_id === composant.id)) {
-      toast.info("Ce composant est déjà dans le devis");
+    const existant = lignes.find((l) => l.catalogue_id === composant.id);
+    if (existant) {
+      setLignes(lignes.map((l) =>
+        l.catalogue_id === composant.id ? { ...l, quantite: l.quantite + 1 } : l
+      ));
+      toast.success(`${composant.nom} — quantité portée à ${existant.quantite + 1}`);
       return;
     }
     const meilleurPrix = Math.min(...composant.prix.map((p) => parseFloat(p.prix)));
