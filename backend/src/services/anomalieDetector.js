@@ -1,60 +1,101 @@
 const pool = require("../config/db");
+const { analyserPrix } = require("./llmClient");
 
 async function getHistorique(catalogueId) {
   const { rows } = await pool.query(
-    "SELECT prix FROM historique_prix WHERE catalogue_id = $1 ORDER BY mois ASC",
+    "SELECT prix, mois FROM historique_prix WHERE catalogue_id = $1 ORDER BY mois ASC",
     [catalogueId]
   );
   return rows.map((r) => parseFloat(r.prix));
 }
 
-async function detecterAnomalie(catalogueId, prixPropose) {
-  const historique = await getHistorique(catalogueId);
-  if (!historique.length || historique.length < 2) {
-    return { status: "ok", confiance: 0.8 };
-  }
-
-  const moyenne = historique.reduce((a, b) => a + b, 0) / historique.length;
-  const ecartType = Math.sqrt(
-    historique.map((p) => Math.pow(p - moyenne, 2)).reduce((a, b) => a + b, 0) /
-      historique.length
+async function getComposantAvecPrix(catalogueId) {
+  const { rows } = await pool.query(
+    `SELECT c.*, json_agg(json_build_object(
+        'fournisseur_id', cp.fournisseur_id,
+        'prix', cp.prix
+     )) AS prix_fournisseurs
+     FROM catalogue c
+     LEFT JOIN catalogue_prix cp ON cp.catalogue_id = c.id
+     WHERE c.id = $1
+     GROUP BY c.id`,
+    [catalogueId]
   );
-  const seuilBas = moyenne - 2 * ecartType;
-  const seuilHaut = moyenne + 2 * ecartType;
+  if (!rows.length) return null;
+  return rows[0];
+}
 
-  if (prixPropose < moyenne * 0.1) {
-    return {
-      status: "critique",
-      message: `Prix suspect : ${prixPropose.toFixed(2)} EUR (possible erreur x100, attendu ~${moyenne.toFixed(2)} EUR)`,
-      confiance: 0.15,
-    };
+async function detecterAnomalie(catalogueId, prixPropose) {
+  const composant = await getComposantAvecPrix(catalogueId);
+  if (!composant) {
+    return { status: "ok", confiance: 0.5, message: "Composant non trouvé" };
   }
-  if (prixPropose > moyenne * 5) {
-    return {
-      status: "critique",
-      message: `Prix anormalement eleve : ${prixPropose.toFixed(2)} EUR (attendu ~${moyenne.toFixed(2)} EUR)`,
-      confiance: 0.15,
-    };
+
+  const historique = await getHistorique(catalogueId);
+
+  const prixFournisseurs = {};
+  const NOMS = { rs: "RS Components", farnell: "Farnell", mouser: "Mouser" };
+  for (const p of composant.prix_fournisseurs || []) {
+    if (p.fournisseur_id && p.prix) {
+      prixFournisseurs[NOMS[p.fournisseur_id] || p.fournisseur_id] = parseFloat(p.prix);
+    }
   }
-  if (prixPropose < seuilBas || prixPropose > seuilHaut) {
+
+  try {
+    const llmResult = await analyserPrix(composant, historique, prixFournisseurs, prixPropose);
+
+    return {
+      status: llmResult.anomalie,
+      confiance: llmResult.confiance,
+      message: llmResult.justification,
+      prix_recommande: llmResult.prix_recommande,
+      fournisseur_recommande: llmResult.fournisseur_recommande,
+      model: llmResult.model,
+      response_time_ms: llmResult.response_time_ms,
+      source: "llm",
+    };
+  } catch (err) {
+    console.error("[LLM] Erreur:", err.message);
     return {
       status: "attention",
-      message: `Prix hors fourchette habituelle (${seuilBas.toFixed(2)} - ${seuilHaut.toFixed(2)} EUR)`,
-      confiance: 0.55,
+      confiance: 0.5,
+      message: `Analyse IA indisponible (${err.message})`,
+      source: "fallback",
     };
   }
-  return { status: "ok", confiance: 0.95 };
 }
 
 async function suggererPrix(catalogueId) {
+  const composant = await getComposantAvecPrix(catalogueId);
+  if (!composant) return null;
+
   const historique = await getHistorique(catalogueId);
-  if (!historique.length || historique.length < 2) return null;
-  const tendance = historique[historique.length - 1] - historique[historique.length - 2];
-  const suggestion = historique[historique.length - 1] + tendance;
-  return {
-    prix: Math.max(0, parseFloat(suggestion.toFixed(2))),
-    source: "Projection lineaire sur historique",
-  };
+  if (!historique.length) return null;
+
+  const prixFournisseurs = {};
+  const NOMS = { rs: "RS Components", farnell: "Farnell", mouser: "Mouser" };
+  for (const p of composant.prix_fournisseurs || []) {
+    if (p.fournisseur_id && p.prix) {
+      prixFournisseurs[NOMS[p.fournisseur_id] || p.fournisseur_id] = parseFloat(p.prix);
+    }
+  }
+
+  const meilleurPrix = Math.min(...Object.values(prixFournisseurs));
+
+  try {
+    const llmResult = await analyserPrix(composant, historique, prixFournisseurs, meilleurPrix);
+    return {
+      prix: llmResult.prix_recommande || meilleurPrix,
+      fournisseur: llmResult.fournisseur_recommande,
+      justification: llmResult.justification,
+      source: "llm",
+    };
+  } catch (err) {
+    return {
+      prix: meilleurPrix,
+      source: "meilleur prix fournisseur (LLM indisponible)",
+    };
+  }
 }
 
-module.exports = { detecterAnomalie, suggererPrix, getHistorique };
+module.exports = { detecterAnomalie, suggererPrix, getHistorique, getComposantAvecPrix };

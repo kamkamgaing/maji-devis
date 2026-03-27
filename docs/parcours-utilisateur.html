@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maji Devis - Parcours Utilisateur</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f7fa; color: #1a1a2e; line-height: 1.7; }
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 48px 0; text-align: center; }
+  .header h1 { font-size: 32px; margin-bottom: 8px; }
+  .header p { font-size: 15px; opacity: 0.8; }
+  .header .url { display: inline-block; margin-top: 12px; background: rgba(255,255,255,0.1); padding: 6px 16px; border-radius: 20px; font-size: 13px; color: #7ec8e3; text-decoration: none; }
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+  .step { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 32px; overflow: hidden; }
+  .step-header { display: flex; align-items: center; gap: 12px; padding: 20px 24px; border-bottom: 1px solid #eee; }
+  .step-num { width: 36px; height: 36px; background: #3B82F6; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+  .step-title { font-size: 18px; font-weight: 700; }
+  .step-body { padding: 24px; }
+  .step-body img { width: 100%; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px; }
+  .step-body p { margin-bottom: 12px; font-size: 14px; }
+  .step-body ul { padding-left: 20px; margin-bottom: 12px; }
+  .step-body li { margin-bottom: 6px; font-size: 14px; }
+  .step-body strong { color: #1a1a2e; }
+  .tip { background: #EFF6FF; border-left: 4px solid #3B82F6; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13px; color: #1e40af; }
+  .tip::before { content: "💡 "; }
+  .features { margin-top: 16px; }
+  .features table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .features th { text-align: left; padding: 10px 12px; background: #f8f9fa; border-bottom: 2px solid #e0e0e0; font-weight: 600; }
+  .features td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+  .footer { text-align: center; padding: 32px; color: #888; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Maji Devis</h1>
+  <p>Manufacture the Future - Parcours Utilisateur</p>
+  <a class="url" href="https://maji-devis-production.up.railway.app/" target="_blank">https://maji-devis-production.up.railway.app/</a>
+</div>
+
+<div class="container">
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">Tableau de bord</div>
+    </div>
+    <div class="step-body">
+      <img src="screenshots/01-dashboard.png" alt="Tableau de bord">
+      <p>Au lancement de l'application, l'utilisateur arrive sur le <strong>tableau de bord</strong> qui présente une vue d'ensemble de l'activité.</p>
+      <ul>
+        <li><strong>4 indicateurs</strong> : nombre total de devis, montant cumulé, brouillons en cours, devis validés</li>
+        <li><strong>Tableau des derniers devis</strong> avec référence, client, total, statut et date</li>
+        <li><strong>Bouton « + Nouveau devis »</strong> en haut à droite pour créer un devis</li>
+      </ul>
+      <p><strong>Actions :</strong> Cliquer sur une ligne pour voir le détail, ou sur « + Nouveau devis » pour démarrer un chiffrage.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title">Création d'un nouveau devis</div>
+    </div>
+    <div class="step-body">
+      <img src="screenshots/02-nouveau-devis-vide.png" alt="Nouveau devis vide">
+      <p>L'utilisateur remplit le <strong>nom du client</strong> (obligatoire) et éventuellement une <strong>référence projet</strong>.</p>
+      <ul>
+        <li><strong>Recherche composants</strong> : barre de recherche pour trouver des pièces dans le catalogue</li>
+        <li><strong>Coûts de production</strong> : Assemblage, Contrôle qualité, Fraisage CNC, Soudure, Tournage CNC</li>
+        <li><strong>Transport</strong> : zone + poids - coût à 0,00 €</li>
+        <li><strong>Récapitulatif</strong> : tous les montants démarrent à 0,00 €</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">Recherche et sélection d'un composant</div>
+    </div>
+    <div class="step-body">
+      <img src="screenshots/03-recherche-composant.png" alt="Recherche composant">
+      <p>L'utilisateur saisit un terme (ex : « vis ») et les résultats s'affichent en <strong>temps réel</strong>.</p>
+      <ul>
+        <li><strong>Prix comparés</strong> de chaque fournisseur (RS Components, Farnell, Mouser)</li>
+        <li><strong>Badge « Suggéré »</strong> en vert sur le meilleur prix</li>
+        <li><strong>Bouton « Ajouter »</strong> pour inclure le composant dans le devis</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      <div class="step-title">Composant ajouté au devis</div>
+    </div>
+    <div class="step-body">
+      <img src="screenshots/04-composant-ajoute.png" alt="Composant ajouté">
+      <p>Le composant apparaît dans le tableau. Une <strong>notification toast</strong> confirme l'ajout en haut à droite.</p>
+      <ul>
+        <li><strong>Cartes de prix cliquables</strong> pour chaque fournisseur</li>
+        <li><strong>Prix retenu</strong> : automatiquement rempli avec le meilleur prix, modifiable</li>
+        <li><strong>Confiance IA</strong> : barre verte à 95% - le prix est dans la norme</li>
+        <li><strong>Récapitulatif</strong> mis à jour automatiquement</li>
+      </ul>
+      <div class="tip">Si l'utilisateur clique à nouveau « Ajouter » sur le même composant, la quantité augmente de +1 au lieu de créer un doublon.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">5</div>
+      <div class="step-title">Choix libre du prix fournisseur</div>
+    </div>
+    <div class="step-body">
+      <img src="screenshots/05-prix-clique.png" alt="Prix fournisseur cliqué">
+      <p>L'utilisateur <strong>clique sur la carte Mouser</strong> (19,50 €) pour changer le prix retenu.</p>
+      <ul>
+        <li><strong>Carte Mouser</strong> entourée en bleu = prix sélectionné</li>
+        <li><strong>Carte Farnell</strong> reste en vert = prix suggéré par l'IA</li>
+        <li><strong>Confiance IA</strong> descend à 55% (orange) avec message : « Prix hors fourchette habituelle »</li>
+        <li><strong>Totaux</strong> recalculés automatiquement</li>
+      </ul>
+      <div class="tip">L'IA détecte que le prix choisi est supérieur à la fourchette normale et avertit l'utilisateur, tout en le laissant libre de son choix.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">6</div>
+      <div class="step-title">Coûts de production</div>
+    </div>
+    <div class="step-body">
+      <img src="screenshots/06-production-transport.png" alt="Production et transport">
+      <p>L'utilisateur ajoute un poste de production en cliquant sur le bouton correspondant.</p>
+      <ul>
+        <li><strong>Assemblage</strong> : 1 heure × 35 €/h = 35,00 €</li>
+        <li><strong>Heures modifiables</strong> et poste supprimable avec ✕</li>
+        <li><strong>Transport</strong> à 0,00 € - se calcule dès que l'utilisateur modifie la zone ou le poids</li>
+        <li><strong>Récapitulatif</strong> : composants + production + marge 15% = <strong>62,68 €</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">7</div>
+      <div class="step-title">Récapitulatif et validation</div>
+    </div>
+    <div class="step-body">
+      <img src="screenshots/07-recapitulatif.png" alt="Récapitulatif">
+      <p>Vue complète du récapitulatif avec tous les postes détaillés.</p>
+      <ul>
+        <li><strong>Total composants</strong> : 19,50 €</li>
+        <li><strong>Total production</strong> : 35,00 €</li>
+        <li><strong>Transport</strong> : 0,00 €</li>
+        <li><strong>Marge</strong> : 15% (modifiable) = 8,18 €</li>
+        <li><strong>Total final</strong> : <strong>62,68 €</strong></li>
+      </ul>
+      <p><strong>Actions finales :</strong></p>
+      <ul>
+        <li><strong>« Brouillon »</strong> : enregistre sans finaliser</li>
+        <li><strong>« Valider le devis »</strong> : enregistre avec le statut Validé</li>
+      </ul>
+      <p>Le devis sera ensuite visible sur le tableau de bord et téléchargeable en <strong>PDF</strong>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">8</div>
+      <div class="step-title">Fournisseurs & Synchronisation</div>
+    </div>
+    <div class="step-body">
+      <img src="screenshots/08-fournisseurs.png" alt="Fournisseurs">
+      <p>Gestion des connexions fournisseurs et mise à jour automatique des prix.</p>
+      <ul>
+        <li><strong>3 fournisseurs</strong> : RS Components, Farnell, Mouser</li>
+        <li><strong>Mode actuel</strong> : Scraping web (extraction automatique sans clé API)</li>
+        <li><strong>Mode recommandé</strong> : API officielle (avec clés gratuites)</li>
+        <li><strong>Bouton « Synchro »</strong> par fournisseur ou « Synchroniser tout »</li>
+        <li><strong>Historique</strong> : statut, produits mis à jour, erreurs, durée</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">✦</div>
+      <div class="step-title">Fonctionnalités transversales</div>
+    </div>
+    <div class="step-body features">
+      <table>
+        <tr><th>Fonctionnalité</th><th>Description</th></tr>
+        <tr><td><strong>Notifications toast</strong></td><td>Confirmations et erreurs en haut à droite, disparaissent après 4 secondes</td></tr>
+        <tr><td><strong>Validation formulaire</strong></td><td>Champ Client obligatoire - bordure rouge et message si vide</td></tr>
+        <tr><td><strong>Confirmation suppression</strong></td><td>Dialogue de confirmation avant de retirer un composant</td></tr>
+        <tr><td><strong>Téléchargement PDF</strong></td><td>Depuis le détail d'un devis, bouton pour télécharger en PDF</td></tr>
+        <tr><td><strong>Détection anomalies IA</strong></td><td>Score de confiance et alerte si le prix est hors norme</td></tr>
+        <tr><td><strong>Prix cliquables</strong></td><td>Clic sur un prix fournisseur pour le sélectionner comme prix retenu</td></tr>
+        <tr><td><strong>Quantité incrémentale</strong></td><td>Re-cliquer « Ajouter » incrémente la quantité de +1</td></tr>
+        <tr><td><strong>Fermeture Escape</strong></td><td>Toutes les modales se ferment avec la touche Escape</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Maji Devis v2.0 - Manufacture the Future - Document généré le 27 mars 2026
+</div>
+
+</body>
+</html>

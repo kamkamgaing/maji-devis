@@ -1,6 +1,6 @@
 const { Router } = require("express");
-const { detecterAnomalie, suggererPrix, getHistorique } = require("../services/anomalieDetector");
-const pool = require("../config/db");
+const { detecterAnomalie, suggererPrix, getHistorique, getComposantAvecPrix } = require("../services/anomalieDetector");
+const { buildPrompt } = require("../services/llmClient");
 
 const router = Router();
 
@@ -29,45 +29,32 @@ router.get("/suggestion/:catalogueId", async (req, res, next) => {
 
 router.get("/prompt/:catalogueId", async (req, res, next) => {
   try {
-    const { rows: catRows } = await pool.query(
-      `SELECT c.*, json_agg(json_build_object(
-          'fournisseur_id', cp.fournisseur_id,
-          'prix', cp.prix
-       )) AS prix_fournisseurs
-       FROM catalogue c
-       LEFT JOIN catalogue_prix cp ON cp.catalogue_id = c.id
-       WHERE c.id = $1
-       GROUP BY c.id`,
-      [req.params.catalogueId]
-    );
-    if (!catRows.length) return res.status(404).json({ error: "Composant introuvable" });
+    const composant = await getComposantAvecPrix(req.params.catalogueId);
+    if (!composant) return res.status(404).json({ error: "Composant introuvable" });
 
-    const composant = catRows[0];
     const historique = await getHistorique(composant.id);
 
-    const prixMap = {};
-    for (const p of composant.prix_fournisseurs) {
-      prixMap[p.fournisseur_id] = parseFloat(p.prix);
+    const NOMS = { rs: "RS Components", farnell: "Farnell", mouser: "Mouser" };
+    const prixFournisseurs = {};
+    for (const p of composant.prix_fournisseurs || []) {
+      if (p.fournisseur_id && p.prix) {
+        prixFournisseurs[NOMS[p.fournisseur_id] || p.fournisseur_id] = parseFloat(p.prix);
+      }
     }
 
-    const prompt = `Tu es un assistant specialise dans le chiffrage industriel.
+    const meilleurPrix = Object.values(prixFournisseurs).length
+      ? Math.min(...Object.values(prixFournisseurs))
+      : 0;
 
-Contexte : Je dois estimer le prix du composant "${composant.nom}" (ref: ${composant.ref}).
-Historique des prix sur 6 mois : ${historique.join(", ")} EUR.
-Prix actuels fournisseurs :
-- RS Components : ${prixMap.rs || "N/A"} EUR
-- Farnell : ${prixMap.farnell || "N/A"} EUR
-- Mouser : ${prixMap.mouser || "N/A"} EUR
+    const prompt = buildPrompt(composant, historique, prixFournisseurs, meilleurPrix);
 
-Reponds en JSON strict :
-{
-  "prix_recommande": <number>,
-  "fournisseur_recommande": "<string>",
-  "confiance": <0-1>,
-  "justification": "<string>"
-}`;
-
-    res.json({ prompt, composant_id: composant.id, composant_nom: composant.nom });
+    res.json({
+      prompt,
+      composant_id: composant.id,
+      composant_nom: composant.nom,
+      model: "mistralai/Mistral-7B-Instruct-v0.3",
+      provider: "HuggingFace Inference API",
+    });
   } catch (err) {
     next(err);
   }

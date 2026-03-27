@@ -47,13 +47,28 @@ export default function LigneDevisRow({ ligne, onUpdate, onSupprimer }) {
       </td>
       <td style={s.td}>
         {loadingIA ? (
-          <Spinner size={14} label="" />
+          <Spinner size={14} label="Analyse IA..." />
         ) : (
           <>
-            <ConfidenceBar value={anomalie.confiance} />
-            {anomalie.status !== "ok" && (
-              <div style={{ fontSize: 11, color: anomalie.status === "critique" ? colors.danger : colors.warning, marginTop: 4, maxWidth: 180 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <ConfidenceBar value={anomalie.confiance} />
+              {anomalie.source === "llm" && (
+                <span style={{ fontSize: 9, color: colors.accent, background: colors.accentSoft, padding: "1px 5px", borderRadius: 3, fontWeight: 600 }}>LLM</span>
+              )}
+            </div>
+            {anomalie.message && (
+              <div style={{
+                fontSize: 11, marginTop: 4, maxWidth: 220, lineHeight: 1.4,
+                color: anomalie.status === "critique" ? colors.danger : anomalie.status === "attention" ? colors.warning : colors.textSecondary,
+              }}>
                 {anomalie.message}
+              </div>
+            )}
+            {anomalie.prix_recommande && anomalie.status !== "ok" && (
+              <div style={{ fontSize: 10, color: colors.accent, marginTop: 2, cursor: "pointer" }}
+                title="Cliquez pour appliquer le prix recommandé"
+                onClick={() => onUpdate({ ...ligne, prix_retenu: anomalie.prix_recommande })}>
+                Prix recommandé : {fmt(anomalie.prix_recommande)}
               </div>
             )}
           </>
