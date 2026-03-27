@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { s, colors } from "../styles/theme";
 import { devisApi, transportApi, productionApi } from "../services/api";
 import RechercheComposant from "../components/RechercheComposant";
@@ -25,6 +25,7 @@ export default function NouveauDevis({ setPage }) {
   const [showAnomalie, setShowAnomalie] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const transportTouched = useRef(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function NouveauDevis({ setPage }) {
   }, []);
 
   useEffect(() => {
+    if (!transportTouched.current) return;
     setTransportLoading(true);
     transportApi.calculer(poidsEstime, zone)
       .then((res) => setTransportCout(res.cout))
@@ -232,7 +234,7 @@ export default function NouveauDevis({ setPage }) {
         <div style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
           <div>
             <label style={{ fontSize: 11, color: colors.textSecondary, display: "block", marginBottom: 4 }}>Zone</label>
-            <select style={s.select} value={zone} onChange={(e) => setZone(e.target.value)}>
+            <select style={s.select} value={zone} onChange={(e) => { transportTouched.current = true; setZone(e.target.value); }}>
               <option value="zone1">Zone 1 — Locale</option>
               <option value="zone2">Zone 2 — Nationale</option>
               <option value="zone3">Zone 3 — Internationale</option>
@@ -240,7 +242,7 @@ export default function NouveauDevis({ setPage }) {
           </div>
           <div>
             <label style={{ fontSize: 11, color: colors.textSecondary, display: "block", marginBottom: 4 }}>Poids estimé (kg)</label>
-            <input type="number" min={1} value={poidsEstime} onChange={(e) => setPoidsEstime(parseInt(e.target.value) || 1)}
+            <input type="number" min={1} value={poidsEstime} onChange={(e) => { transportTouched.current = true; setPoidsEstime(parseInt(e.target.value) || 1); }}
               style={{ ...s.input, width: 100 }} />
           </div>
           <div style={{ paddingBottom: 4, fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
