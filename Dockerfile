@@ -2,6 +2,8 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+ARG CACHEBUST=1
+
 COPY frontend/package*.json ./frontend/
 RUN cd frontend && npm ci
 
